@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "906260873969",
+    "project_id": "ifinanca-e072f",
+    "storage_bucket": "ifinanca-e072f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:906260873969:android:2773a97912e123f0515f50",
+        "android_client_info": {
+          "package_name": "br.edu.iftm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "906260873969-143nl4ed7llb8dtsh35hccid5k11o0n4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd4cMJBQyWbTRjBXBdSEXA1GmsXpH44JY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "906260873969-143nl4ed7llb8dtsh35hccid5k11o0n4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
