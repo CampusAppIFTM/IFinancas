@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, Button, ActivityIndicator, Image } from "react-
 import { useState } from "react";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-//funções de autenticação
+//funções de autenticaç\\
 export const onLogin = async () => {
   const user = await GoogleSignin.signIn();
   return user;
