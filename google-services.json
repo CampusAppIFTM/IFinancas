@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "370591678468",
+    "project_id": "ifinancas-35a8b",
+    "storage_bucket": "ifinancas-35a8b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370591678468:android:69f3a6819f5649bef0b551",
+        "android_client_info": {
+          "package_name": "ifinancas.com.br"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "370591678468-poqqrsgpg17lfh3fmf8f5lbjjgfv941h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwjtiVcK6BwRUBllM8fH9sTpJGWtWSSEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "370591678468-poqqrsgpg17lfh3fmf8f5lbjjgfv941h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
