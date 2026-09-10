@@ -1,74 +1,62 @@
-import { StyleSheet, Text, View, Button, ActivityIndicator, Image } from "react-native";
-import { useState } from "react";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
+/**
+ * App.js
+ * ---------------------------------------------------------------------------
+ * Componente raiz. Responsabilidade única: decidir QUAL tela mostrar.
+ *
+ * São três estados possíveis, e não dois:
+ *   verificando === true   -> ainda não sabemos se há sessão  -> CarregandoScreen
+ *   usuario !== null       -> há usuário autenticado          -> HomeScreen
+ *   usuario === null       -> não há usuário                  -> LoginScreen
+ *
+ * Confundir "ainda não sei" com "não há usuário" é o erro que faz o app piscar
+ * a tela de login a cada abertura.
+ * ---------------------------------------------------------------------------
+ */
+import { useEffect, useState } from "react";
+import { StatusBar } from "expo-status-bar";
+import { View, StyleSheet } from "react-native";
 
-//funções de autenticação
-export const onLogin = async () => {
-  const user = await GoogleSignin.signIn();
-  return user;
-};
+import { configurarGoogleSignin, observarUsuario } from "./src/services/autenticacao";
+import CarregandoScreen from "./src/screens/CarregandoScreen";
+import LoginScreen from "./src/screens/LoginScreen";
+import HomeScreen from "./src/screens/HomeScreen";
 
-export const onLogout = async () => {
-  return await GoogleSignin.signOut();
-};
+const App = () => {
+  const [usuario, setUsuario] = useState(null);
+  const [verificando, setVerificando] = useState(true);
 
-GoogleSignin.configure({
-  webClientId: "usar o valor obtido do arquivo google-services.json",
-});
+  useEffect(() => {
+    configurarGoogleSignin();
 
-// Telas
-const LoginScreen = ({ login }) => {
-  const [isSigninInProgress, setIsSigninInProgress] = useState(false);
+    // observarUsuario devolve a função de cancelamento. Ao retorná-la no
+    // useEffect, o React a executa quando o componente é desmontado, evitando
+    // que o listener continue vivo (vazamento de memória).
+    const cancelarObservacao = observarUsuario((usuarioAtual) => {
+      setUsuario(usuarioAtual);
+      setVerificando(false);
+    });
+
+    return cancelarObservacao;
+  }, []); // array vazio: executa uma única vez, na montagem
 
   return (
-    <View style={styles.layout}>
-      {isSigninInProgress && <ActivityIndicator />}
-      <Text style={styles.title}>Login</Text>
-      <Button
-        title="entrar"
-        onPress={() => {
-          setIsSigninInProgress(true);
-          onLogin().then((user) => {
-            console.log(user);
-            login(user);
-          });
-        }}
-      />
+    <View style={styles.container}>
+      <StatusBar style="auto" />
+      {verificando ? (
+        <CarregandoScreen />
+      ) : usuario ? (
+        <HomeScreen usuario={usuario} />
+      ) : (
+        <LoginScreen />
+      )}
     </View>
   );
 };
 
-const HomeScreen = ({ user, login }) => (
-  <View style={styles.layout}>
-    <Text style={styles.title}>Home</Text>
-    <Image
-      style={{ width: 300, height: 300, marginBottom:30, borderRadius: 90 }}
-      source={{
-        uri: user.data.user.photo,
-      }}
-    />
-    <Button title="Sair" onPress={() => onLogout().then(() => login(false))} />
-  </View>
-);
-
-const App = () => {
-  const [user, setUser] = useState(false);
-  return <View style={styles.container}>{user ? <HomeScreen user={user} login={setUser} /> : <LoginScreen login={setUser} />}</View>;
-};
 export default App;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  layout: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#ccc",
-  },
-  title: {
-    fontSize: 32,
-    marginBottom: 16,
   },
 });
