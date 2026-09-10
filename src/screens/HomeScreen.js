@@ -47,6 +47,7 @@ const HomeScreen = ({ usuario }) => {
       )}
 
       {/* ?? cobre o caso de displayName ser null, não apenas undefined. */}
+      <Text style={styles.titulo}>IFinanças</Text>
       <Text style={styles.nome}>Olá, {usuario.displayName ?? "usuário"}!</Text>
       <Text style={styles.email}>{usuario.email}</Text>
       <Text style={styles.uid}>uid: {usuario.uid}</Text>
@@ -69,8 +70,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   foto: {
-    width: 140,
-    height: 140,
+    width: 100,
+    height: 100,
     borderRadius: 70,
     marginBottom: 24,
   },

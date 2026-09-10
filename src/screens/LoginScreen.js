@@ -12,7 +12,7 @@
  * ---------------------------------------------------------------------------
  */
 import { useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Image, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { GoogleSigninButton } from "@react-native-google-signin/google-signin";
 
 import { entrarComGoogle, descreverErro } from "../services/autenticacao";
@@ -42,8 +42,13 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>Minha Agenda</Text>
-      <Text style={styles.subtitulo}>Entre para continuar</Text>
+      <Image
+        source={require('../../assets/logo-if.png')}
+        style={styles.imagem}
+        resizeMode='contain'
+      />
+      <Text style={styles.titulo}>IFinanças</Text>
+      <Text style={styles.subtitulo}>Seu gestor financeiro pessoal</Text>
 
       {/*
         GoogleSigninButton é o botão oficial. Além de pronto, ele atende às
@@ -74,9 +79,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#c4e4c8",
     padding: 24,
   },
+  imagem:{
+    width: 100,
+    height: 100,
+    marginBottom: 16,
+  },
+
   titulo: {
     fontSize: 32,
     fontWeight: "bold",
