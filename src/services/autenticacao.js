@@ -91,11 +91,19 @@ export async function entrarComGoogle() {
   }
 
   const idToken = resposta.data?.idToken;
-
+  const email = resposta.data?.user.email
   if (!idToken) {
     // Quase sempre significa webClientId ausente ou incorreto.
     throw new Error(
       "O Google não devolveu o idToken. Verifique o webClientId informado em configurarGoogleSignin()."
+    );
+  }
+  
+  if (!email.includes("iftm.edu.br")) {
+    // Quase sempre significa webClientId ausente ou incorreto.
+    sair()
+    throw new Error(
+      "O email nao pertence ao IFTM!"
     );
   }
 
