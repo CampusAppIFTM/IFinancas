@@ -10,7 +10,7 @@
  * no Firestore -- ele não muda, mesmo que a pessoa troque o e-mail.
  * ---------------------------------------------------------------------------
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -19,12 +19,43 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  FlatList,
 } from "react-native";
 
 import { sair } from "../services/autenticacao";
+import { observarFinancas, formatarMoeda } from "../services/financas";
 
 const HomeScreen = ({ usuario }) => {
   const [saindo, setSaindo] = useState(false);
+  const [gastoAtual, setGastoAtual] = useState(0);
+  const [gastos, setGastos] = useState([]);
+  const [carregandoFinancas, setCarregandoFinancas] = useState(true);
+  const [erroFinancas, setErroFinancas] = useState(null);
+
+  /**
+   * Assina o Firestore. O serviço escuta os DOIS documentos (gastoAtual e
+   * ultimosgastos) e entrega tudo pronto em um único callback. O retorno do
+   * useEffect cancela a escuta quando a tela é desmontada (sem isso o
+   * listener ficaria vivo para sempre).
+   */
+  useEffect(() => {
+    const cancelar = observarFinancas(
+      ({ gastoAtual, lista }) => {
+        setGastoAtual(gastoAtual);
+        setGastos(lista);
+        setCarregandoFinancas(false);
+      },
+      (erro) => {
+        console.log("Falha ao ler finanças:", erro);
+        setErroFinancas(
+          "Não foi possível carregar seus dados. Verifique as regras do Firestore."
+        );
+        setCarregandoFinancas(false);
+      }
+    );
+
+    return cancelar;
+  }, []);
 
   const aoSair = async () => {
     setSaindo(true);
@@ -69,7 +100,7 @@ const HomeScreen = ({ usuario }) => {
       {/* ---------- Card de gasto atual ---------- */}
       <View style={styles.cardGasto}>
         <Text style={styles.cardLabel}>Total Gasto:</Text>
-        <Text style={styles.cardValor}>R$00,00</Text>
+        <Text style={styles.cardValor}>{formatarMoeda(gastoAtual)}</Text>
         <View style={styles.cardLinha} />
       </View>
 
@@ -81,11 +112,34 @@ const HomeScreen = ({ usuario }) => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.listaGastos}>
-        <View style={styles.itemGasto} />
-        <View style={styles.itemGasto} />
-        <View style={styles.itemGasto} />
-      </View>
+      {/* FlatList em vez de .map: o React Native virtualiza (renderiza só o
+          que está na tela), então a rolagem continua lisa com muitos itens. */}
+      <FlatList
+        style={styles.listaGastos}
+        data={gastos}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listaConteudo}
+        renderItem={({ item }) => (
+          <View style={styles.itemGasto}>
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemDescricao}>{item.descricao}</Text>
+              <Text style={styles.itemData}>{item.data}</Text>
+            </View>
+            <Text style={styles.itemValor}>{formatarMoeda(item.valor)}</Text>
+          </View>
+        )}
+        ListEmptyComponent={
+          carregandoFinancas ? (
+            <Text style={styles.listaVazia}>Carregando...</Text>
+          ) : erroFinancas ? (
+            <Text style={styles.listaVazia}>{erroFinancas}</Text>
+          ) : (
+            <Text style={styles.listaVazia}>
+              Nenhum lançamento ainda. Registre seu primeiro gasto!
+            </Text>
+          )
+        }
+      />
 
       {/* ---------- Barra de navegação inferior ---------- */}
       <View style={styles.tabBar}>
@@ -213,12 +267,46 @@ const styles = StyleSheet.create({
   listaGastos: {
     marginHorizontal: 20,
     marginTop: 16,
+    flexGrow: 0, // impede a FlatList de roubar todo o espaço vertical
+  },
+  listaConteudo: {
+    paddingBottom: 16,
+  },
+  listaVazia: {
+    fontSize: 14,
+    color: "#777",
+    textAlign: "center",
+    marginTop: 12,
   },
   itemGasto: {
-    height: 56,
+    minHeight: 56,
     borderRadius: 10,
-    backgroundColor: "#e2e2e2",
+    backgroundColor: "#f2f2f2",
     marginBottom: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  itemInfo: {
+    flex: 1,
+    marginRight: 10,
+  },
+  itemDescricao: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#222",
+  },
+  itemData: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 2,
+  },
+  itemValor: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#c0392b", // vermelho: é sempre gasto
   },
 
   // Barra de navegação inferior
@@ -256,4 +344,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
-});
+}); 

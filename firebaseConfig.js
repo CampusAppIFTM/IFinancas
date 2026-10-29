@@ -1,7 +1,7 @@
 /**
  * firebaseConfig.js
  * ---------------------------------------------------------------------------
- * Inicializa o Firebase e o serviço de autenticação.
+ * Inicializa o Firebase, o serviço de autenticação E o Firestore.
  *
  * PONTO DE ATENÇÃO (o mais esquecido em React Native):
  * getAuth() guarda a sessão APENAS EM MEMÓRIA. Ao fechar e reabrir o app, o
@@ -12,8 +12,9 @@
  *   npx expo install firebase @react-native-async-storage/async-storage
  * ---------------------------------------------------------------------------
  */
-import { initializeApp } from "firebase/app";
-import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import { getApps, getApp, initializeApp } from "firebase/app";
+import { initializeAuth, getAuth, getReactNativePersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Estes valores vêm do console do Firebase (Configurações do projeto > Seus apps).
@@ -28,8 +29,46 @@ const firebaseConfig = {
   appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+/**
+ * Inicialização IDEMPOTENTE: este módulo pode ser reexecutado pelo Fast
+ * Refresh durante o desenvolvimento. Sem as checagens abaixo, rodar
+ * initializeApp/initializeAuth uma segunda vez lançaria os erros
+ * "app/duplicate-app" e "auth/already-initialized".
+ */
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+/**
+ * getApps()/getApp() reutilizam o app existente; no auth, o try/catch é
+ * necessário porque initializeAuth lança auth/already-initialized se o
+ * serviço de auth já tiver sido criado nesta sessão do Metro.
+ */
+function criarAuth(aplicativo) {
+  try {
+    return initializeAuth(aplicativo, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch {
+    // Já existe uma instância de auth para este app -> reutiliza.
+    return getAuth(aplicativo);
+  }
+}
+
+export const auth = criarAuth(app);
+
+/**
+ * Instância do Firestore (banco de dados).
+ *
+ * Os documentos viverão na coleção "financas", e cada documento terá um campo
+ * `uid` com o dono. É isso que permite uma regra de segurança do tipo:
+ *
+ *   match /financas/{doc} {
+ *     allow read, write: if request.auth.uid == resource.data.uid;
+ *   }
+ *
+ * Sem esse campo, seria impossível escrever uma regra que iscole os dados de
+ * cada usuário (resource.data não teria como indicar o dono).
+ * A função getFirestore() é idempotente: se a instância já existe para este
+ * app, ela devolve a mesma (não lança erro), ao contrário de
+ * initializeFirestore(). Isso torna o módulo seguro sob Fast Refresh.
+ */
+export const db = getFirestore(app);
